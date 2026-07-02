@@ -21,10 +21,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Install yutto
         run: pip install yutto
 
-      - name: Download danmaku (ASS)
+      - name: Download danmaku
         env:
           BILI_SESSDATA: ${{ secrets.BILI_SESSDATA }}
         run: |
