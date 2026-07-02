@@ -1,36 +1,36 @@
-name: Bilibili 仅下载弹幕 XML
+name: yutto download
 
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: '番剧链接 (ep/ss)'
+        description: "B站视频URL"
         required: true
 
 jobs:
-  danmaku:
+  download:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 下载弹幕
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install yutto
         run: |
-          mkdir -p downloads
-          docker run --rm \
-            -v ${{ github.workspace }}/downloads:/downloads \
-            siguremo/yutto download \
-            "${{ github.event.inputs.url }}" \
-            --dir /downloads \
-            --danmaku-format xml \
-            --danmaku-only
+          pip install -U yutto
 
-      - name: 显示结果
-        run: ls -R downloads
+      - name: Download video + danmaku
+        run: |
+          mkdir output
+          yutto "${{ github.event.inputs.url }}" -d output
 
-      - name: 下载文件
+      - name: Upload result
         uses: actions/upload-artifact@v4
         with:
-          name: danmaku-xml
-          path: downloads/
-          retention-days: 7
+          name: yutto-output
+          path: output
