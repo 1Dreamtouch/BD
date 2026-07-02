@@ -1,25 +1,24 @@
-name: Bilibili 番剧弹幕下载 (XML)
+name: Bilibili 仅下载弹幕 (XML)
 
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: 'B站链接 (支持 SS/EP/MD 号或完整网址)'
+        description: '番剧链接 (支持 epxxxx / ssxxxx / 完整网址)'
         required: true
-        default: 'https://www.bilibili.com/bangumi/play/ep'
       episodes:
-        description: '选集 (默认全集 ^~$，如 1-5 或 1,3,5)'
+        description: '选集 (默认全季 ^~$)'
         required: false
         default: '^~$'
 
 jobs:
-  download:
+  danmaku:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 下载弹幕 (yutto Docker)
+      - name: 下载弹幕 (仅 XML)
         run: |
           mkdir -p downloads
           docker run --rm \
@@ -27,16 +26,18 @@ jobs:
             siguremo/yutto \
             "${{ github.event.inputs.url }}" \
             --dir /downloads \
-            --danmaku xml \
+            --danmaku-format xml \
             --episodes "${{ github.event.inputs.episodes }}" \
-            --yes
+            --yes \
+            --no-video \           # 只下载弹幕
+            --danmaku-only         # 强化只下弹幕
 
-      - name: 显示下载文件列表
+      - name: 显示下载的弹幕文件
         run: ls -R downloads
 
-      - name: Upload 弹幕文件 (方便下载)
+      - name: 打包下载 (Artifacts)
         uses: actions/upload-artifact@v4
         with:
-          name: bilibili-danmaku
+          name: bilibili-danmaku-xml
           path: downloads/
-          retention-days: 7
+          retention-days: 7   # 保留7天
