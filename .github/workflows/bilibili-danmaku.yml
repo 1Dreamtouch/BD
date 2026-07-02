@@ -1,4 +1,4 @@
-name: bilibili-danmaku-download
+name: bilibili-danmaku-xml-download
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      # ✅ 关键：必须装 ffmpeg
+      # ✅ ffmpeg（yutto 依赖检测）
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
@@ -29,18 +29,19 @@ jobs:
       - name: Install yutto
         run: pip install -U yutto
 
-      # ✅ 下载弹幕（自动兼容 ep / ss）
-      - name: Download danmaku
+      # ✅ 下载 XML 弹幕（核心）
+      - name: Download danmaku (XML)
         env:
           BILI_SESSDATA: ${{ secrets.BILI_SESSDATA }}
         run: |
           mkdir -p output
 
-          echo "Start downloading: ${{ github.event.inputs.url }}"
+          echo "Downloading: ${{ github.event.inputs.url }}"
 
           yutto "${{ github.event.inputs.url }}" \
             -b \
             --danmaku-only \
+            --danmaku-format xml \
             --dir output \
             --no-color
 
@@ -48,5 +49,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: danmaku-output
+          name: danmaku-xml
           path: output
