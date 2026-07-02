@@ -1,11 +1,12 @@
-name: yutto download
+name: bilibili-danmaku-download
 
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: "B站视频URL"
+        description: "Bilibili ep url"
         required: true
+        default: "https://www.bilibili.com/bangumi/play/ep32246"
 
 jobs:
   download:
@@ -18,19 +19,23 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install yutto
-        run: |
-          pip install -U yutto
+        run: pip install yutto
 
-      - name: Download video + danmaku
+      - name: Download danmaku (ASS)
+        env:
+          BILI_SESSDATA: ${{ secrets.BILI_SESSDATA }}
         run: |
           mkdir output
-          yutto "${{ github.event.inputs.url }}" -d output
+          yutto "${{ github.event.inputs.url }}" \
+            --danmaku-only \
+            --dir output \
+            --no-color
 
-      - name: Upload result
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: yutto-output
+          name: danmaku
           path: output
