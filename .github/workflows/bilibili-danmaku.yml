@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: '番剧链接 (支持 epxxxx / ssxxxx / 完整网址)'
+        description: '番剧链接'
         required: true
       episodes:
-        description: '选集 (默认全季 ^~$)'
+        description: '选集 (默认全季)'
         required: false
         default: '^~$'
 
@@ -18,26 +18,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 下载弹幕 (仅 XML)
+      - name: 仅下载弹幕 (XML)
         run: |
           mkdir -p downloads
           docker run --rm \
             -v ${{ github.workspace }}/downloads:/downloads \
             siguremo/yutto \
+            download \
             "${{ github.event.inputs.url }}" \
             --dir /downloads \
             --danmaku-format xml \
             --episodes "${{ github.event.inputs.episodes }}" \
-            --yes \
-            --no-video \           # 只下载弹幕
-            --danmaku-only         # 强化只下弹幕
+            --no-video \
+            --danmaku-only
 
-      - name: 显示下载的弹幕文件
+      - name: 显示文件
         run: ls -R downloads
 
-      - name: 打包下载 (Artifacts)
+      - name: 下载弹幕文件
         uses: actions/upload-artifact@v4
         with:
           name: bilibili-danmaku-xml
           path: downloads/
-          retention-days: 7   # 保留7天
+          retention-days: 7
