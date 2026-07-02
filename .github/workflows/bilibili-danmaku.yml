@@ -1,10 +1,10 @@
-name: Bilibili 仅下载弹幕 (XML)
+name: Bilibili 仅下载弹幕 XML
 
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: '番剧链接'
+        description: '番剧链接 (ep/ss)'
         required: true
 
 jobs:
@@ -14,25 +14,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 仅下载弹幕 XML
+      - name: 下载弹幕
         run: |
           mkdir -p downloads
           docker run --rm \
             -v ${{ github.workspace }}/downloads:/downloads \
-            siguremo/yutto \
-            download "${{ github.event.inputs.url }}" \
+            siguremo/yutto download \
+            "${{ github.event.inputs.url }}" \
             --dir /downloads \
             --danmaku-format xml \
-            --danmaku-only \
-            --no-video \
-            --episodes ^~$
+            --danmaku-only
 
-      - name: 显示下载结果
-        run: ls -lhR downloads
+      - name: 显示结果
+        run: ls -R downloads
 
-      - name: 下载弹幕文件
+      - name: 下载文件
         uses: actions/upload-artifact@v4
         with:
-          name: bilibili-danmaku-xml
+          name: danmaku-xml
           path: downloads/
           retention-days: 7
