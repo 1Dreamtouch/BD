@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: "Bilibili ep url"
+        description: "Bilibili URL (ep / ss / md)"
         required: true
-        default: "https://www.bilibili.com/bangumi/play/ep32246"
+        default: "https://www.bilibili.com/bangumi/play/ss1539"
 
 jobs:
   download:
@@ -21,24 +21,32 @@ jobs:
         with:
           python-version: "3.11"
 
+      # ✅ 关键：必须装 ffmpeg
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
+      # ✅ 安装 yutto
       - name: Install yutto
-        run: pip install yutto
+        run: pip install -U yutto
 
+      # ✅ 下载弹幕（自动兼容 ep / ss）
       - name: Download danmaku
         env:
           BILI_SESSDATA: ${{ secrets.BILI_SESSDATA }}
         run: |
-          mkdir output
+          mkdir -p output
+
+          echo "Start downloading: ${{ github.event.inputs.url }}"
+
           yutto "${{ github.event.inputs.url }}" \
+            -b \
             --danmaku-only \
             --dir output \
             --no-color
 
+      # ✅ 上传结果
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: danmaku
+          name: danmaku-output
           path: output
